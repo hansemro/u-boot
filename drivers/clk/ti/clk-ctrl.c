@@ -9,7 +9,11 @@
 #include <dm.h>
 #include <dm/device_compat.h>
 #include <clk-uclass.h>
+#if CONFIG_IS_ENABLED(AM33XX)
 #include <asm/arch-am33xx/clock.h>
+#else
+#include <asm/omap_common.h>
+#endif
 
 struct clk_ti_ctrl_offs {
 	fdt_addr_t start;
@@ -37,7 +41,11 @@ static int clk_ti_ctrl_check_offs(struct clk *clk, fdt_addr_t offs)
 static int clk_ti_ctrl_disable(struct clk *clk)
 {
 	struct clk_ti_ctrl_priv *priv = dev_get_priv(clk->dev);
+#if CONFIG_IS_ENABLED(AM33XX)
 	u32 *clk_modules[2] = { };
+#else
+	u32 clk_modules[2] = { };
+#endif
 	fdt_addr_t offs;
 	int err;
 
@@ -48,8 +56,13 @@ static int clk_ti_ctrl_disable(struct clk *clk)
 		return err;
 	}
 
+#if CONFIG_IS_ENABLED(AM33XX)
 	clk_modules[0] = (u32 *)(offs);
 	dev_dbg(clk->dev, "disable module @ %p\n", clk_modules[0]);
+#else
+	clk_modules[0] = (u32)offs;
+	dev_dbg(clk->dev, "disable module @ %p\n", clk_modules);
+#endif
 	do_disable_clocks(NULL, clk_modules, 1);
 	return 0;
 }
@@ -57,7 +70,11 @@ static int clk_ti_ctrl_disable(struct clk *clk)
 static int clk_ti_ctrl_enable(struct clk *clk)
 {
 	struct clk_ti_ctrl_priv *priv = dev_get_priv(clk->dev);
+#if CONFIG_IS_ENABLED(AM33XX)
 	u32 *clk_modules[2] = { };
+#else
+	u32 clk_modules[2] = { };
+#endif
 	fdt_addr_t offs;
 	int err;
 
@@ -68,9 +85,18 @@ static int clk_ti_ctrl_enable(struct clk *clk)
 		return err;
 	}
 
+#if CONFIG_IS_ENABLED(AM33XX)
 	clk_modules[0] = (u32 *)(offs);
 	dev_dbg(clk->dev, "enable module @ %p\n", clk_modules[0]);
+#else
+	clk_modules[0] = (u32)(offs);
+	dev_dbg(clk->dev, "enable module @ %p\n", clk_modules);
+#endif
+#if CONFIG_IS_ENABLED(AM33XX)
 	do_enable_clocks(NULL, clk_modules, 1);
+#else
+	do_enable_clocks(NULL, NULL, clk_modules, 1);
+#endif
 	return 0;
 }
 
