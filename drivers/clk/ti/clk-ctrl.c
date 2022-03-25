@@ -9,7 +9,11 @@
 #include <dm.h>
 #include <dm/device_compat.h>
 #include <clk-uclass.h>
+#if CONFIG_IS_ENABLED(AM33XX)
 #include <asm/arch-am33xx/clock.h>
+#else
+#include <asm/omap_common.h>
+#endif
 
 struct clk_ti_ctrl_offs {
 	fdt_addr_t start;
@@ -50,7 +54,11 @@ static int clk_ti_ctrl_disable(struct clk *clk)
 
 	clk_modules[0] = (u32 *)(offs);
 	dev_dbg(clk->dev, "disable module @ %p\n", clk_modules[0]);
+#if CONFIG_IS_ENABLED(AM33XX)
 	do_disable_clocks(NULL, clk_modules, 1);
+#else
+	do_disable_clocks(NULL, (u32 *)clk_modules, 1);
+#endif
 	return 0;
 }
 
@@ -70,7 +78,11 @@ static int clk_ti_ctrl_enable(struct clk *clk)
 
 	clk_modules[0] = (u32 *)(offs);
 	dev_dbg(clk->dev, "enable module @ %p\n", clk_modules[0]);
+#if CONFIG_IS_ENABLED(AM33XX)
 	do_enable_clocks(NULL, clk_modules, 1);
+#else
+	do_enable_clocks(NULL, NULL, (u32 *)clk_modules, 1);
+#endif
 	return 0;
 }
 
